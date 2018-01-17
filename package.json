@@ -8,12 +8,17 @@
     "dist": "dist",
     "assets": "private"
   },
-  "dependencies": {},
+  "dependencies": {
+    "dotenv": "^4.0.0"
+  },
   "devDependencies": {
+    "autoprefixer": "^7.2.5",
     "babel-preset-env": "^1.6.1",
     "browser-sync": "^2.23.5",
     "del": "^3.0.0",
-    "eslint": "^4.15.0",
+    "eslint-config-nau": "^13.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint_d": "^5.1.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-if": "^2.0.2",
@@ -24,5 +29,16 @@
     "gulp-uglify": "^3.0.0",
     "stylelint": "^8.4.0",
     "stylelint-config-standard": "^18.0.0"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "debug-server": "node --inspect keystone.js",
+    "eslint": "eslint_d .",
+    "eslint-stop-service": "eslint_d stop",
+    "start-static": "gulp serve",
+    "start": "gulp serve-app",
+    "stylelint": "stylelint public/css/**/*.scss",
+    "iconfont": "gulp iconfont",
+    "test": "npm run eslint"
   }
 }
