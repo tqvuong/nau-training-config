@@ -13,8 +13,8 @@ const gulpPlugins = require('gulp-load-plugins')();
  * Configs
  */
 let mode = 'dev';
-let paths = {
-	src: '.',
+const paths = {
+	src: 'src',
 	dist: 'dist',
 	assets: 'private',
 	// subfolders:
@@ -25,67 +25,68 @@ let paths = {
 	styles: 'css',
 	// temporary
 	tmp: '.tmp',
-	// other computed paths
-	get srcFonts() { return paths.src + '/' + paths.fonts; },
-	get srcImages() { return paths.src + '/' + paths.images; },
-	get srcScripts() { return paths.src + '/' + paths.scripts; },
-	get srcStyles() { return paths.src + '/' + paths.styles; },
-	get distFonts() { return paths.dist + '/' + paths.fonts; },
-	get distImages() { return paths.dist + '/' + paths.images; },
-	get distScripts() { return paths.dist + '/' + paths.scripts; },
-	get distStyles() { return paths.dist + '/' + paths.styles; },
 };
 
+// other computed paths
+paths.srcFonts = `${paths.src}/${paths.fonts}`;
+paths.srcImages = `${paths.src}/${paths.images}`;
+paths.srcScripts = `${paths.src}/${paths.scripts}`;
+paths.srcStyles = `${paths.src}/${paths.styles}`;
+paths.distFonts = `${paths.dist}/${paths.fonts}`;
+paths.distImages = `${paths.dist}/${paths.images}`;
+paths.distScripts = `${paths.dist}/${paths.scripts}`;
+paths.distStyles = `${paths.dist}/${paths.styles}`;
 /*generator: iconfont*/
 
 /**
  * Task: styles
  * compile sass, add browser prefix
  */
-gulp.task('styles', function() {
-	return gulp.src(path.join(paths.srcStyles, '/*.scss'))
+gulp.task('styles', () =>
+	gulp
+		.src(path.join(paths.srcStyles, '/*.scss'))
 		.pipe(gulpPlugins.sourcemaps.init())
-		.pipe(gulpPlugins.sass({
-			outputStyle: 'expanded',
-			precision: 10,
-			includePaths: ['.'],
-			onError: console.error.bind(console, 'Sass error:')
-		}))
-		.pipe(gulpPlugins.postcss([
-			require('autoprefixer-core')({browsers: ['last 2 version', 'ie >= 9']})
-		]))
-		.pipe( gulpPlugins.if(mode === 'dev', gulpPlugins.sourcemaps.write()) )
+		.pipe(
+			gulpPlugins.sass({
+				outputStyle: 'expanded',
+				precision: 10,
+				includePaths: ['.'],
+				onError: console.error.bind(console, 'Sass error:'),
+			})
+		)
+		.pipe(gulpPlugins.postcss([require('autoprefixer')({ browsers: ['last 2 version', 'ie >= 9'] })]))
+		.pipe(gulpPlugins.if(mode === 'dev', gulpPlugins.sourcemaps.write()))
 		.pipe(gulp.dest(paths.srcStyles))
-		.pipe( gulpPlugins.if(mode !== 'dev', gulp.dest(paths.distStyles)) )
-		.pipe(browserSync.stream());
-});
-
-// ----------------------------------------------------------------------------
+		.pipe(gulpPlugins.if(mode !== 'dev', gulp.dest(paths.distStyles)))
+);
 
 /**
- * Task: jshint
- * Lint javascript
+ * Task: transpile js
+ * compile sass, add browser prefix
  */
-gulp.task('jshint', function() {
-	return gulp.src([
-		path.join(paths.srcScripts, '/**/*.js'),
-		path.join('!' + paths.srcScripts, '/lib/*.js'),
-		path.join('!' + paths.srcScripts, '/vendor/*.js')
-	])
-		.pipe(browserSync.stream({once: true}))
-		.pipe(gulpPlugins.jshint())
-		.pipe(gulpPlugins.jshint.reporter('jshint-stylish'))
-		.pipe(gulpPlugins.if(!browserSync.active, gulpPlugins.jshint.reporter('fail')));
-});
 
-// ----------------------------------------------------------------------------
+gulp.task('transpile-to-es5', () =>
+	gulp
+		.src(path.join(paths.srcScripts, '/**/*.js'))
+		.pipe(gulpPlugins.sourcemaps.init())
+		.pipe(
+			gulpPlugins.babel({
+				presets: ['es2015'],
+			})
+		)
+		.pipe(gulpPlugins.if(mode === 'dev', gulpPlugins.sourcemaps.write()))
+		.pipe(gulp.dest(paths.srcStyles))
+		.pipe(gulpPlugins.if(mode !== 'dev', gulp.dest(paths.distScripts)))
+		.pipe(browserSync.stream())
+);
 
 /**
  * Task: copy-images
  * Minify and copy UI images to dist
  */
-gulp.task('copy-images', function() {
-	return gulp.src(path.join(paths.srcImages, '**/*'))
+gulp.task('copy-images', () =>
+	gulp
+		.src(path.join(paths.srcImages, '**/*'))
 		// .pipe(gulpPlugins.cache(gulpPlugins.imagemin({
 		// 	progressive: true,
 		// 	interlaced: true,
@@ -93,37 +94,27 @@ gulp.task('copy-images', function() {
 		// 	// as hooks for embedding and styling
 		// 	svgoPlugins: [{cleanupIDs: false}]
 		// })))
-		.pipe(gulp.dest(paths.distImages));
-});
-
-// ----------------------------------------------------------------------------
+		.pipe(gulp.dest(paths.distImages))
+);
 
 /**
  * Task: copy-fonts
  * Copy fonts
  */
-gulp.task('copy-fonts', function() {
-	return gulp.src(path.join(paths.srcFonts, '/**/*'))
-		.pipe(gulp.dest(paths.distFonts));
-});
-
-// ----------------------------------------------------------------------------
+gulp.task('copy-fonts', () => gulp.src(path.join(paths.srcFonts, '/**/*')).pipe(gulp.dest(paths.distFonts)));
 
 /**
  * Task: copy-extras
  * copy extra files in root folder (.htaccess, robot.txt, favicon.ico...)
  */
-gulp.task('copy-extras', function() {
-	return gulp.src([
-		path.join(paths.src, '/*.*'),
-		path.join('!' + paths.src, '/*.html')
-	], {
-		dot: true,
-		base: 'html'
-	}).pipe(gulp.dest(paths.dist));
-});
-
-// ----------------------------------------------------------------------------
+gulp.task('copy-extras', () =>
+	gulp
+		.src([path.join(paths.src, '/*.*'), path.join('!' + paths.src, '/*.html')], {
+			dot: true,
+			base: 'html',
+		})
+		.pipe(gulp.dest(paths.dist))
+);
 
 /**
  * Task: clean
@@ -131,43 +122,36 @@ gulp.task('copy-extras', function() {
  */
 gulp.task('clean', require('del').bind(null, [paths.dist, paths.tmp]));
 
-// ----------------------------------------------------------------------------
-
 /**
  * Task: watch
  * Watch for changes
  */
-gulp.task('watch', ['styles'], function () {
+gulp.task('watch', ['styles'], () => {
 	// watch for HTML / JS changes
-	gulp.watch([
-		path.join(paths.src, '/**/*.html'),
-		path.join(paths.src, '/**/*.js'),
-	], function(event) {
+	gulp.watch([path.join(paths.src, '/**/*.html'), path.join(paths.src, '/**/*.js')], event => {
 		browserSync.reload(event.path);
 	});
 
 	//watch for SCSS changes
-	gulp.watch(path.join(paths.src, '/css/**/*.scss'), function(/*event*/) {
+	gulp.watch(path.join(paths.src, '/css/**/*.scss'), (/*event*/) => {
 		gulp.start('styles');
 	});
 });
 
-// ----------------------------------------------------------------------------
-
 // Browser sync init boilerplate
-function browserSyncInit(baseDir, browser) {
+const browserSyncInit = (baseDir, browser) => {
 	browser = browser === undefined ? 'default' : browser;
 
 	var routes = null;
 	if (baseDir === paths.src || (Array.isArray(baseDir) && baseDir.indexOf(paths.src) !== -1)) {
 		routes = {
-			'/bower_components': 'bower_components'
+			'/bower_components': 'bower_components',
 		};
 	}
 
 	var server = {
 		baseDir: baseDir,
-		routes: routes
+		routes: routes,
 	};
 
 	/*
@@ -182,15 +166,17 @@ function browserSyncInit(baseDir, browser) {
 	browserSync.instance = browserSync.init({
 		startPath: '/',
 		server: server,
-		browser: browser
+		browser: browser,
+		port: 7979,
+		host: 'localhost',
 	});
-}
+};
 
 /**
  * Task: serve
  * Serve the app through localhost with browsersync for testing
  */
-gulp.task('serve', ['watch'], function () {
+gulp.task('serve', ['watch'], () => {
 	browserSyncInit([paths.tmp, paths.src]);
 });
 
@@ -198,11 +184,9 @@ gulp.task('serve', ['watch'], function () {
  * Task: serve-build
  * Serve the build through localhost
  */
-gulp.task('serve-build', ['build'], function () {
+gulp.task('serve-build', ['build'], () => {
 	browserSyncInit([paths.dist]);
 });
-
-// ----------------------------------------------------------------------------
 
 /**
  * Task: build
@@ -210,21 +194,17 @@ gulp.task('serve-build', ['build'], function () {
  *
  * FIXME: NOT TEST
  */
-gulp.task('build', ['clean', 'jshint'], function() {
+gulp.task('build', ['clean'], () => {
 	mode = 'dist';
 	gulp.start(['styles', 'copy-images', 'copy-fonts', 'copy-extras']);
 });
 
 // FIXME: NOT tested
-gulp.task('report', ['build'], function() {
-	return gulp.src('dist/**/*').pipe(gulpPlugins.size({title: 'build', gzip: true}));
-});
+gulp.task('report', ['build'], () => gulp.src('dist/**/*').pipe(gulpPlugins.size({ title: 'build', gzip: true })));
 
-
-// ----------------------------------------------------------------------------
 /**
  * Default task
  */
-gulp.task('default', function() {
+gulp.task('default', () => {
 	gulp.start('serve');
 });
