@@ -1,0 +1,1 @@
+nau-training-config
