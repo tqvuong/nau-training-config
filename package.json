@@ -1,0 +1,25 @@
+{
+  "name": "nau-training-config",
+  "version": "0.0.0",
+  "description": "config project with Nau generators, research ES6 and above",
+  "license": "UNLICENSED",
+  "config": {
+    "src": ".",
+    "dist": "dist",
+    "assets": "private"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "browser-sync": "^2.23.5",
+    "del": "^3.0.0",
+    "eslint": "^4.15.0",
+    "gulp": "^3.9.1",
+    "gulp-if": "^2.0.2",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-postcss": "^7.0.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.6.3",
+    "stylelint": "^8.4.0",
+    "stylelint-config-standard": "^18.0.0"
+  }
+}
